@@ -1,0 +1,13 @@
+{
+  "features": [
+    "voltage",
+    "current",
+    "power",
+    "energy"
+  ],
+  "contamination": 0.05,
+  "n_estimators": 100,
+  "trained_at": "2026-05-03T17:15:11.352323",
+  "model_file": "model.pkl",
+  "scaler_file": "scaler.pkl"
+}

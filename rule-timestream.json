@@ -1,0 +1,12 @@
+{
+  "sql": "SELECT device_id,voltage,current,power,energy FROM 'smarthome/energy'",
+  "actions": [{
+    "timestream": {
+      "roleArn": "arn:aws:iam::441365428043:role/LabRole",
+      "databaseName": "SmartHomeDB",
+      "tableName": "EnergyData",
+      "dimensions": [{"name": "device", "value": "${device_id}"}]
+    }
+  }],
+  "ruleDisabled": false
+}

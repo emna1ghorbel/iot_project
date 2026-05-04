@@ -1,0 +1,12 @@
+{
+  "sql": "SELECT device_id, voltage, current, power, energy, timestamp() as timestamp FROM 'smarthome/energy'",
+  "actions": [{
+    "dynamoDBv2": {
+      "roleArn": "arn:aws:iam::441365428043:role/LabRole",
+      "putItem": {
+        "tableName": "EnergyData"
+      }
+    }
+  }],
+  "ruleDisabled": false
+}
