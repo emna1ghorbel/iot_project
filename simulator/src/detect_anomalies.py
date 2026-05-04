@@ -46,6 +46,19 @@ ALERT_COOLDOWN    = int(os.environ.get("ALERT_COOLDOWN",    60))   # seconds bef
 PAGE_SIZE         = int(os.environ.get("PAGE_SIZE",         100))  # DynamoDB page size
 
 # ─────────────────────────────────────────────
+# Per-device normal operating power ranges (W)
+# If power is within [min, max], skip AI — it's definitively normal.
+# This prevents the Isolation Forest (trained on mixed hourly data)
+# from false-flagging high-power devices like clim or chauffe.
+# ─────────────────────────────────────────────
+DEVICE_NORMAL_RANGES = {
+    "principal": (30,   700),    # base ~2.1A × 220V ≈ 460W, allow ±50%
+    "clim":      (200, 1800),    # base ~5.5A × 220V ≈ 1210W, allow ±50%
+    "chauffe":   (150, 1400),    # base ~4.1A × 220V ≈ 900W, allow ±50%
+    "lumiere":   (10,   40),     # Seuil abaissé à 40W pour TEST d'anomalie (normal ~60W)
+}
+
+# ─────────────────────────────────────────────
 # Load AI model
 # ─────────────────────────────────────────────
 log.info("Loading AI model …")
@@ -105,14 +118,9 @@ log.info("🤖  AI + MQTT connected ✅")
 # ─────────────────────────────────────────────
 def send_command(device_id: str, command: str) -> None:
     """
-    Publish a relay command only when the device state actually changes,
-    preventing continuous ON/OFF spam every cycle.
+    Publish a relay command. Always publish when called, because the AI
+    monitor does not track manual overrides from the dashboard.
     """
-    with state_lock:
-        if device_states.get(device_id) == command:
-            return                         # already in desired state
-        device_states[device_id] = command
-
     payload = {"device": device_id, "command": command}
     try:
         conn.publish(
@@ -133,25 +141,36 @@ def _write_alert(item: dict) -> None:
         log.error("Alert write failed for %s: %s", item.get("device_id"), exc)
 
 # ─────────────────────────────────────────────
-# DynamoDB paginated scan
+# DynamoDB — fetch latest record per device
 # ─────────────────────────────────────────────
-def scan_all_items() -> list[dict]:
-    """
-    Use paginated scan so no records are silently skipped when the table
-    exceeds the 1 MB per-page DynamoDB limit.
-    """
-    items = []
-    kwargs: dict = {"Limit": PAGE_SIZE}
+KNOWN_DEVICES = ["principal", "clim", "chauffe", "lumiere"]
 
-    while True:
-        response = table_data.scan(**kwargs)
-        items.extend(response.get("Items", []))
-        last = response.get("LastEvaluatedKey")
-        if not last:
-            break
-        kwargs["ExclusiveStartKey"] = last
-
-    return items
+def fetch_latest_per_device() -> list[dict]:
+    """
+    Query the single most-recent record for each known device.
+    Using Query (not Scan) is O(1) per device instead of O(N) over
+    the entire table — much faster and cheaper on DynamoDB.
+    Evaluating only the latest record avoids re-triggering anomaly
+    commands on thousands of historical records every cycle.
+    """
+    results = []
+    for device_id in KNOWN_DEVICES:
+        try:
+            resp = table_data.query(
+                KeyConditionExpression=Key("device_id").eq(device_id),
+                ScanIndexForward=False,   # descending → latest first
+                Limit=1,
+            )
+            items = resp.get("Items", [])
+            if items:
+                results.append(items[0])
+                log.debug("Latest %s → ts=%s", device_id,
+                          items[0].get("timestamp", "?"))
+            else:
+                log.info("No data yet for device: %s", device_id)
+        except Exception as exc:
+            log.warning("Query failed for %s: %s", device_id, exc)
+    return results
 
 # ─────────────────────────────────────────────
 # AI evaluation
@@ -167,6 +186,36 @@ def evaluate(item: dict) -> None:
     except (ValueError, TypeError) as exc:
         log.warning("Bad data for %s: %s", device_id, exc)
         return
+
+    # ── Pre-check: is power within the known normal range for this device?
+    # This guards against the Isolation Forest false-flagging high-power
+    # devices (clim, chauffe, principal) whose wattage is perfectly normal
+    # but falls outside the model's training distribution.
+    normal_range = DEVICE_NORMAL_RANGES.get(device_id)
+    if normal_range is not None:
+        lo, hi = normal_range
+        if lo <= power <= hi:
+            log.info("✅  NORMAL %s | P=%.2f W (in range [%d-%d]W — skipping AI)",
+                     device_id, power, lo, hi)
+            return
+        elif power > hi:
+            log.warning("🚨  FORCED ANOMALY %s | P=%.2f W > %d W (Out of bounds)", device_id, power, hi)
+            score = -0.88
+            ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+            
+            alert_record = {
+                "device_id": device_id,
+                "timestamp": ts,
+                "voltage":   Decimal(str(round(voltage, 4))),
+                "current":   Decimal(str(round(current, 4))),
+                "power":     Decimal(str(round(power,   4))),
+                "energy":    Decimal(str(round(energy,  6))),
+                "score":     Decimal(str(round(score,   4))),
+                "status":    "ANOMALY",
+            }
+            executor.submit(_write_alert, alert_record)
+            send_command(device_id, "OFF")
+            return
 
     X        = np.array([[voltage, current, power, energy]])
     X_scaled = scaler.transform(X)
@@ -207,7 +256,6 @@ def evaluate(item: dict) -> None:
     else:
         # ── NORMAL ───────────────────────────────
         log.info("✅  NORMAL %s | P=%.2f W", device_id, power)
-        send_command(device_id, "ON")
 
 # ─────────────────────────────────────────────
 # Main loop
@@ -219,8 +267,8 @@ while True:
     cycle_start = time.time()
 
     try:
-        items = scan_all_items()
-        log.info("📊  Fetched %d records", len(items))
+        items = fetch_latest_per_device()
+        log.info("📊  Evaluating latest record for %d device(s)", len(items))
 
         for item in items:
             evaluate(item)

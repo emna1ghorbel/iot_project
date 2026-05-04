@@ -91,9 +91,16 @@ def status():
         log.warning("DynamoDB status check failed: %s", e)
         services["dynamodb"] = "error"
 
-    # AWS IoT Core — lightweight ping via get_thing_shadow on a dummy thing
+    # AWS IoT Core — lightweight ping
     try:
-        iot_client.list_thing_types(maxResults=1)
+        # We can't use list_thing_types on 'iot-data'. We must use a data plane method.
+        # A simple publish to a dummy ping topic is the safest way to verify connectivity
+        # without needing specific Thing names.
+        iot_client.publish(
+            topic="smarthome/ping",
+            qos=0,
+            payload=json.dumps({"ping": "ping"})
+        )
         services["iot"] = "connected"
     except Exception as e:
         log.warning("IoT status check failed: %s", e)
@@ -163,10 +170,13 @@ def history():
             "%Y-%m-%dT%H:%M:%S.000Z"
         )
 
-        # Filter by timestamp >= cutoff using FilterExpression
-        # (timestamp is a sort key so this is efficient per device via Query)
+        # Optional filter by device_id
+        target_device = request.args.get("device_id")
+        devices_to_query = [target_device] if target_device and target_device in DEVICES else DEVICES
+
+        # Filter by timestamp >= cutoff using KeyConditionExpression
         result = []
-        for device_id in DEVICES:
+        for device_id in devices_to_query:
             try:
                 resp = table_data.query(
                     KeyConditionExpression=(
@@ -191,7 +201,7 @@ def history():
         # Sort globally by timestamp ascending
         result.sort(key=lambda x: x["timestamp"])
 
-        return jsonify({"success": True, "data": result})
+        return jsonify({"success": True, "count": len(result), "data": result})
 
     except Exception as e:
         log.error("history(): %s", e)

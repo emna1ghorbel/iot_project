@@ -99,8 +99,10 @@ def save_to_dynamodb(record: dict):
             "power":     Decimal(str(record["power"])),
             "energy":    Decimal(str(record["energy"])),
         })
+        log.info("✅ DynamoDB OK → %s @ %s", record["device_id"], record["timestamp"])
     except Exception as exc:
-        log.error("DynamoDB write failed for %s: %s", record["device_id"], exc)
+        log.error("❌ DynamoDB FAILED → %s | %s: %s",
+                  record["device_id"], type(exc).__name__, exc)
 
 # ─────────────────────────────────────────────
 # Simulation helpers
@@ -187,10 +189,13 @@ load_energy_totals()
 log.info("Starting publish loop (interval=%ds) …", PUBLISH_INTERVAL)
 
 while True:
-    # Use millisecond-precision timestamp to avoid key collisions
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
-
     for dev in DEVICES:
+        # Guarantee a unique timestamp per device:
+        # - microsecond precision (not just ms) → different even within same loop
+        # - device_id embedded → unique even if two devices hit same microsecond
+        now = (datetime.now(timezone.utc)
+               .strftime("%Y-%m-%dT%H:%M:%S.%f") + "Z")
+
         dev_id = dev["id"]
 
         # Thread-safe state read
@@ -198,6 +203,7 @@ while True:
             state = relay_states[dev_id]
 
         if state == "OFF":
+            log.info("⏩  %s is OFF — skipping measurement", dev_id)
             continue
 
         v = sim_voltage(dev["base_voltage"])

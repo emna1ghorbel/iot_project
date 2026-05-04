@@ -3,1020 +3,573 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Smart Home — Tableau de Bord IoT</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<title>Smart Home Pro — IoT Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root{
-  --bg:#07090f;--bg2:#0d1117;--bg3:#141b26;--bg4:#1a2235;
-  --brd:rgba(255,255,255,0.06);--brd2:rgba(255,255,255,0.12);
-  --tx:#dde4f0;--tx2:#7a8ba8;--tx3:#3d526e;
-  --ac:#00e5b0;--ac2:#0ea5e9;--warn:#f59e0b;
-  --danger:#f43f5e;--ok:#22c55e;--purple:#a78bfa;
-  --font:'Syne',sans-serif;--mono:'IBM Plex Mono',monospace;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{font-family:var(--font);background:var(--bg);color:var(--tx);min-height:100vh;display:flex;overflow-x:hidden}
-
-/* grid bg texture */
-body::before{
-  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:
-    linear-gradient(rgba(0,229,176,0.025) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(0,229,176,0.025) 1px,transparent 1px);
-  background-size:40px 40px;
-}
-
-/* ── SIDEBAR ── */
-.sidebar{
-  width:210px;background:var(--bg2);border-right:1px solid var(--brd);
-  display:flex;flex-direction:column;padding:20px 0;
-  position:fixed;height:100vh;z-index:100;
-}
-.logo{padding:0 16px 18px;border-bottom:1px solid var(--brd);margin-bottom:14px}
-.logo-mark{
-  width:36px;height:36px;
-  background:conic-gradient(var(--ac),var(--ac2),var(--ac));
-  border-radius:10px;display:flex;align-items:center;justify-content:center;
-  font-size:16px;margin-bottom:10px;
-  box-shadow:0 0 24px rgba(0,229,176,.25);
-}
-.logo h1{font-size:13px;font-weight:700;letter-spacing:.02em}
-.logo p{font-size:9px;color:var(--tx3);margin-top:3px;font-family:var(--mono);letter-spacing:.06em}
-
-.nav-section{padding:0 8px;margin-bottom:4px}
-.nav-label{font-size:8px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;padding:0 8px;margin-bottom:6px}
-.nav-item{
-  display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;
-  cursor:pointer;transition:all .15s;font-size:11px;color:var(--tx2);
-  margin-bottom:2px;border:1px solid transparent;font-weight:600;
-}
-.nav-item:hover{background:var(--bg3);color:var(--tx)}
-.nav-item.active{background:rgba(0,229,176,.08);color:var(--ac);border-color:rgba(0,229,176,.18)}
-.nav-item .ni{font-size:14px;width:18px;text-align:center}
-.nav-badge{
-  margin-left:auto;background:var(--danger);color:#fff;
-  font-size:9px;padding:2px 6px;border-radius:20px;font-weight:700;
-  font-family:var(--mono);min-width:18px;text-align:center;
+:root {
+  --bg: #09090b;
+  --panel: rgba(24, 24, 27, 0.7);
+  --brd: rgba(255, 255, 255, 0.06);
+  --brd-active: rgba(255, 255, 255, 0.15);
+  
+  --tx: #fafafa;
+  --tx-dim: #a1a1aa;
+  --tx-muted: #52525b;
+  
+  --primary: #10b981; /* Emerald */
+  --primary-glow: rgba(16, 185, 129, 0.2);
+  
+  --danger: #ef4444;
+  --danger-glow: rgba(239, 68, 68, 0.2);
+  
+  --warn: #f59e0b;
+  --warn-glow: rgba(245, 158, 11, 0.2);
+  
+  --blue: #3b82f6;
+  --violet: #8b5cf6;
+  
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --radius: 16px;
 }
 
-.sb-foot{margin-top:auto;padding:14px 16px;border-top:1px solid var(--brd)}
-.dot-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--tx2);font-weight:600}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex-shrink:0}
-.dot.live{animation:pulse-dot 2s ease-in-out infinite}
-.dot.off{background:var(--danger)}
-@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}50%{box-shadow:0 0 0 5px rgba(34,197,94,0)}}
-.sb-url{font-size:9px;color:var(--tx3);margin-top:5px;font-family:var(--mono)}
-
-/* ── MAIN ── */
-.main{margin-left:210px;flex:1;padding:24px 26px;min-height:100vh;position:relative;z-index:1}
-
-.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
-.page-title h2{font-size:20px;font-weight:800;letter-spacing:-.3px}
-.page-title p{font-size:11px;color:var(--tx2);margin-top:3px;font-family:var(--mono)}
-
-.topbar-right{display:flex;align-items:center;gap:10px}
-.time-badge{
-  font-family:var(--mono);font-size:11px;color:var(--tx2);
-  background:var(--bg2);padding:6px 12px;border-radius:7px;border:1px solid var(--brd);
-  letter-spacing:.04em;
-}
-.rfbtn{
-  background:rgba(0,229,176,.08);color:var(--ac);
-  border:1px solid rgba(0,229,176,.25);border-radius:8px;
-  padding:7px 14px;font-size:11px;cursor:pointer;
-  font-family:var(--font);font-weight:700;transition:all .15s;
-  display:flex;align-items:center;gap:6px;letter-spacing:.03em;
-}
-.rfbtn:hover{background:rgba(0,229,176,.15)}
-.rfbtn.loading .spn{display:inline-block;animation:rot .6s linear infinite}
-@keyframes rot{to{transform:rotate(360deg)}}
-
-/* ── ANOMALY BANNER ── */
-.anomaly-banner{
-  background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.28);
-  border-radius:10px;padding:10px 16px;display:none;
-  align-items:center;gap:10px;margin-bottom:20px;font-size:12px;
-  animation:fadeIn .3s ease;
-}
-.anomaly-banner.show{display:flex}
-.pr{width:8px;height:8px;border-radius:50%;background:var(--danger);flex-shrink:0;animation:pulse-dot 1s infinite}
-@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-
-/* ── METRICS ── */
-.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.mc{
-  background:var(--bg2);border:1px solid var(--brd);border-radius:12px;
-  padding:16px;position:relative;overflow:hidden;transition:border-color .2s;
-  animation:slideUp .4s ease both;
-}
-.mc:nth-child(1){animation-delay:.05s}
-.mc:nth-child(2){animation-delay:.1s}
-.mc:nth-child(3){animation-delay:.15s}
-.mc:nth-child(4){animation-delay:.2s}
-@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.mc:hover{border-color:var(--brd2)}
-.mc-accent{position:absolute;bottom:0;left:0;right:0;height:2px;opacity:.7}
-.mc-lbl{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;font-weight:700}
-.mc-val{font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1}
-.mc-unit{font-size:12px;font-weight:400;color:var(--tx2);margin-left:2px}
-.mc-sub{font-size:9px;color:var(--tx3);margin-top:7px;font-family:var(--mono)}
-.mc-ico{
-  position:absolute;right:14px;top:14px;width:32px;height:32px;
-  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { 
+  font-family: var(--font); 
+  background: var(--bg); 
+  color: var(--tx); 
+  display: flex; 
+  min-height: 100vh;
+  background-image: 
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
 }
 
-/* ── MAIN GRID ── */
-.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-
-/* ── DEVICE CARDS ── */
-.devices-panel{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;padding:18px}
-.panel-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
-.panel-title{font-size:13px;font-weight:700;letter-spacing:.02em}
-.panel-sub{font-size:9px;color:var(--tx3);margin-top:3px;font-family:var(--mono)}
-
-.dev-grid{display:flex;flex-direction:column;gap:9px}
-.dev-card{
-  background:var(--bg3);border:1px solid var(--brd);border-radius:10px;
-  padding:13px;transition:all .2s;
+/* SIDEBAR */
+.sidebar { 
+  width: 260px; 
+  background: rgba(9, 9, 11, 0.8); 
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--brd); 
+  display: flex; 
+  flex-direction: column; 
+  padding: 32px 0; 
+  position: fixed; 
+  height: 100vh; 
+  z-index: 100; 
 }
-.dev-card.on{border-color:rgba(0,229,176,.3);background:rgba(0,229,176,.03)}
-.dev-card.anomaly{border-color:rgba(244,63,94,.35);background:rgba(244,63,94,.05);animation:anomaly-pulse 2s ease-in-out infinite}
-@keyframes anomaly-pulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 15px rgba(244,63,94,.15)}}
-
-.dev-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.dev-left{display:flex;align-items:center;gap:9px}
-.dev-ico{
-  width:36px;height:36px;border-radius:9px;background:var(--bg4);
-  display:flex;align-items:center;justify-content:center;font-size:17px;
-  transition:all .2s;flex-shrink:0;
+.logo { padding: 0 24px 32px; display: flex; align-items: center; gap: 12px; }
+.logo-mark { 
+  width: 40px; height: 40px; background: var(--primary); 
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 20px var(--primary-glow);
 }
-.dev-card.on .dev-ico{background:rgba(0,229,176,.1)}
-.dev-card.anomaly .dev-ico{background:rgba(244,63,94,.12)}
-.dev-name{font-size:12px;font-weight:700;color:var(--tx)}
-.dev-detail{font-size:9px;color:var(--tx3);margin-top:2px;font-family:var(--mono)}
+.logo-mark svg { width: 20px; height: 20px; fill: white; }
+.logo-text h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.5px; }
+.logo-text p { font-size: 10px; color: var(--tx-muted); font-family: var(--mono); }
 
-.dev-mid{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.badge{font-size:8px;padding:3px 8px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
-.badge.on{background:rgba(0,229,176,.12);color:#00c495}
-.badge.off{background:rgba(61,82,110,.2);color:var(--tx3)}
-.badge.anomaly{background:rgba(244,63,94,.18);color:var(--danger)}
-.threshold{font-size:9px;color:var(--tx3);font-family:var(--mono)}
-
-.dev-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
-.dm{background:var(--bg4);border-radius:7px;padding:6px 9px}
-.dm-lbl{font-size:8px;color:var(--tx3);margin-bottom:2px;text-transform:uppercase;letter-spacing:.06em}
-.dm-val{font-size:12px;font-weight:600;color:var(--tx)}
-.dm-unit{font-size:8px;color:var(--tx2)}
-
-/* Toggle */
-.tgl{position:relative;width:40px;height:22px;cursor:pointer;flex-shrink:0}
-.tgl input{opacity:0;width:0;height:0}
-.sldr{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--bg4);border-radius:22px;transition:.25s;border:1px solid var(--brd2)}
-.sldr::before{content:'';position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:var(--tx3);border-radius:50%;transition:.25s}
-input:checked+.sldr{background:var(--ac);border-color:var(--ac)}
-input:checked+.sldr::before{transform:translateX(18px);background:#fff}
-input:disabled+.sldr{opacity:.35;cursor:not-allowed}
-
-/* ── CHART ── */
-.chart-panel{
-  background:var(--bg2);border:1px solid var(--brd);border-radius:12px;
-  padding:18px;display:flex;flex-direction:column;
+.nav-group { padding: 0 16px; margin-bottom: 24px; }
+.nav-label { font-size: 10px; font-weight: 700; color: var(--tx-muted); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 12px; margin-bottom: 8px; }
+.nav-item { 
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px; 
+  border-radius: 12px; cursor: pointer; transition: all 0.2s; 
+  font-size: 14px; color: var(--tx-dim); font-weight: 500; 
 }
-.tf-row{display:flex;gap:4px}
-.tf{
-  padding:4px 10px;border-radius:5px;font-size:9px;border:1px solid var(--brd);
-  background:transparent;color:var(--tx2);cursor:pointer;
-  font-family:var(--font);font-weight:700;transition:all .15s;letter-spacing:.04em;
+.nav-item:hover { background: rgba(255, 255, 255, 0.03); color: var(--tx); }
+.nav-item.active { background: rgba(16, 185, 129, 0.1); color: var(--primary); font-weight: 600; }
+.nav-item .ni { font-size: 18px; }
+
+.sb-footer { margin-top: auto; padding: 24px; border-top: 1px solid var(--brd); }
+.conn-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--tx-dim); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #52525b; transition: 0.3s; }
+.dot.live { background: var(--primary); box-shadow: 0 0 10px var(--primary); animation: pulse 2s infinite; }
+.dot.off { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+/* MAIN CONTENT */
+.main { margin-left: 260px; flex: 1; padding: 40px; max-width: 1400px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+.topbar h2 { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.clock { font-family: var(--mono); color: var(--tx-dim); font-size: 14px; background: var(--panel); padding: 8px 16px; border-radius: 10px; border: 1px solid var(--brd); }
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 32px; }
+.stat-card { 
+  background: var(--panel); border: 1px solid var(--brd); border-radius: var(--radius); 
+  padding: 24px; transition: all 0.3s; position: relative; overflow: hidden;
 }
-.tf.active{background:rgba(0,229,176,.1);color:var(--ac);border-color:rgba(0,229,176,.3)}
+.stat-card:hover { border-color: var(--brd-active); transform: translateY(-2px); }
+.stat-label { font-size: 11px; font-weight: 700; color: var(--tx-muted); text-transform: uppercase; margin-bottom: 12px; }
+.stat-val { font-size: 32px; font-weight: 700; letter-spacing: -1px; }
+.stat-unit { font-size: 14px; color: var(--tx-muted); margin-left: 4px; font-weight: 400; }
+.stat-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; opacity: 0.6; }
 
-/* ── BOTTOM GRID ── */
-.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+/* LAYOUT GRID */
+.layout-grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
 
-/* ── ALERTS ── */
-.alerts-panel{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;padding:18px}
-.alerts-list{display:flex;flex-direction:column;gap:7px;max-height:260px;overflow-y:auto}
-.ai{
-  display:flex;align-items:flex-start;gap:9px;padding:10px;border-radius:8px;
-  background:var(--bg3);border:1px solid var(--brd);transition:border-color .15s;
-  animation:fadeIn .3s ease;
+/* DEVICES PANEL */
+.panel { background: var(--panel); border: 1px solid var(--brd); border-radius: var(--radius); padding: 24px; backdrop-filter: blur(10px); }
+.panel-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+.panel-title span { font-size: 12px; font-weight: 500; color: var(--tx-muted); }
+
+.dev-list { display: flex; flex-direction: column; gap: 12px; }
+.dev-card { 
+  background: rgba(255, 255, 255, 0.02); border: 1px solid var(--brd); 
+  border-radius: 14px; padding: 16px; cursor: pointer; transition: 0.2s;
+  position: relative;
 }
-.ai:hover{border-color:var(--brd2)}
-.aico{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
-.aico.danger{background:rgba(244,63,94,.15)}
-.aico.warn{background:rgba(245,158,11,.15)}
-.aico.ok{background:rgba(34,197,94,.15)}
-.atit{font-size:11px;font-weight:600;color:var(--tx)}
-.adet{font-size:9px;color:var(--tx2);margin-top:2px;font-family:var(--mono)}
-.atm{font-size:9px;color:var(--tx3);font-family:var(--mono);margin-top:2px}
-.abadge{font-size:8px;padding:2px 6px;border-radius:3px;font-weight:700;text-transform:uppercase;flex-shrink:0;margin-top:2px;letter-spacing:.04em}
-.abadge.danger{background:rgba(244,63,94,.18);color:var(--danger)}
-.abadge.warn{background:rgba(245,158,11,.18);color:var(--warn)}
-.abadge.ok{background:rgba(34,197,94,.15);color:var(--ok)}
+.dev-card:hover { background: rgba(255, 255, 255, 0.04); border-color: var(--brd-active); }
+.dev-card.active { border-color: var(--primary); background: rgba(16, 185, 129, 0.04); }
+.dev-card.anomaly { border-color: var(--danger); background: rgba(239, 68, 68, 0.04); }
 
-/* ── STATUS ── */
-.status-panel{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;padding:18px}
-.svc-list{display:flex;flex-direction:column;gap:8px}
-.sc{
-  background:var(--bg3);border:1px solid var(--brd);border-radius:8px;
-  padding:11px 13px;display:flex;align-items:center;gap:10px;
+.dev-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.dev-icon { 
+  width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.05);
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
 }
-.sind{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:all .3s}
-.sind.ok{background:var(--ok);animation:pulse-dot 2s infinite}
-.sind.off{background:var(--danger)}
-.sn{font-size:11px;font-weight:600;color:var(--tx)}
-.sd{font-size:9px;color:var(--tx3);margin-top:2px;font-family:var(--mono)}
-.svc-extra{font-size:9px;color:var(--tx3);margin-left:auto;text-align:right;font-family:var(--mono)}
+.dev-card.active-on .dev-icon { background: rgba(16, 185, 129, 0.15); color: var(--primary); }
+.dev-info { flex: 1; }
+.dev-name { font-size: 14px; font-weight: 700; }
+.dev-status { font-size: 11px; color: var(--tx-muted); font-family: var(--mono); }
 
-/* ── EMPTY ── */
-.empty{text-align:center;padding:28px;color:var(--tx3);font-size:11px}
-.empty-icon{font-size:26px;margin-bottom:8px}
+.dev-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.m-item { background: rgba(0, 0, 0, 0.2); padding: 8px 12px; border-radius: 8px; }
+.m-label { font-size: 9px; color: var(--tx-muted); text-transform: uppercase; margin-bottom: 2px; font-weight: 700; }
+.m-val { font-size: 13px; font-weight: 600; font-family: var(--mono); }
 
-/* ── TOAST ── */
-.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:7px}
-.toast{
-  background:var(--bg3);border:1px solid var(--brd2);border-radius:10px;
-  padding:10px 14px;font-size:11px;min-width:240px;
-  display:flex;align-items:center;gap:9px;
-  animation:slideUp .25s ease;box-shadow:0 10px 40px rgba(0,0,0,.6);
-  font-weight:600;
+.dev-controls { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btn-c { 
+  padding: 8px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;
+  border: 1px solid var(--brd); background: transparent; color: var(--tx-dim); transition: 0.2s;
 }
-@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-.toast.success{border-left:3px solid var(--ok)}
-.toast.error{border-left:3px solid var(--danger)}
-.toast.warn{border-left:3px solid var(--warn)}
+.btn-c:hover:not(:disabled) { background: rgba(255,255,255,0.05); }
+.btn-c.on-active { border-color: var(--primary); color: var(--primary); background: rgba(16, 185, 129, 0.1); }
+.btn-c.off-active { border-color: var(--danger); color: var(--danger); background: rgba(239, 68, 68, 0.1); }
 
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:3px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:4px}
+/* CHART PANEL */
+.chart-panel { background: var(--panel); border: 1px solid var(--brd); border-radius: var(--radius); padding: 32px; display: flex; flex-direction: column; gap: 24px; }
+.chart-header { display: flex; align-items: center; justify-content: space-between; }
+.chart-title h3 { font-size: 18px; font-weight: 700; }
+.chart-title p { font-size: 12px; color: var(--tx-muted); margin-top: 4px; }
+
+.time-filters { display: flex; background: rgba(0, 0, 0, 0.3); padding: 4px; border-radius: 10px; border: 1px solid var(--brd); }
+.tf-btn { 
+  padding: 6px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; border: none; 
+  background: transparent; color: var(--tx-muted); cursor: pointer; transition: 0.2s;
+}
+.tf-btn.active { background: var(--bg); color: var(--tx); box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+
+.chart-container { height: 400px; width: 100%; position: relative; }
+
+/* ALERTS */
+.alerts-col { margin-top: 32px; }
+.alert-item { 
+  background: rgba(255, 255, 255, 0.02); border: 1px solid var(--brd); border-radius: 12px; 
+  padding: 16px; display: flex; align-items: flex-start; gap: 16px; margin-bottom: 12px;
+  animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+.a-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.a-icon.danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+.a-icon.ok { background: rgba(16, 185, 129, 0.15); color: var(--primary); }
+.a-content { flex: 1; }
+.a-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.a-detail { font-size: 12px; color: var(--tx-dim); line-height: 1.4; }
+.a-time { font-size: 10px; color: var(--tx-muted); margin-top: 8px; font-family: var(--mono); }
+
+/* TOAST */
+#toast-box { position: fixed; bottom: 32px; right: 32px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; }
+.toast { background: #18181b; border: 1px solid var(--brd-active); padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 12px; animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="logo">
-    <div class="logo-mark">🏠</div>
-    <h1>Smart Home</h1>
-    <p>IoT DASHBOARD v2.0</p>
-  </div>
-  <div class="nav-section">
-    <div class="nav-label">Principal</div>
-    <div class="nav-item active" onclick="navTo(this,'Tableau de Bord','smarthome/energy — ESP32 simulator')">
-      <span class="ni">📊</span>Tableau de bord
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
     </div>
-    <div class="nav-item" onclick="navTo(this,'Historique','Données archivées — DynamoDB')">
-      <span class="ni">📈</span>Historique
-    </div>
-    <div class="nav-item" onclick="navTo(this,'Alertes','Anomalies détectées par IA')">
-      <span class="ni">🔔</span>Alertes
-      <span class="nav-badge" id="alert-count">0</span>
-    </div>
-    <div class="nav-item" onclick="navTo(this,'Contrôle','Relais — AWS IoT Core MQTT')">
-      <span class="ni">🎛️</span>Contrôle
+    <div class="logo-text">
+      <h1>Smart Home Pro</h1>
+      <p>AI Intelligence v2.5</p>
     </div>
   </div>
-  <div class="nav-section" style="margin-top:8px">
-    <div class="nav-label">Système</div>
-    <div class="nav-item" onclick="navTo(this,'État Système','Services AWS & connectivité')">
-      <span class="ni">⚙️</span>État système
-    </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Monitoring</div>
+    <div class="nav-item active"><span class="ni">📊</span>Tableau de Bord</div>
+    <div class="nav-item"><span class="ni">📈</span>Analyses</div>
+    <div class="nav-item"><span class="ni">🔔</span>Alertes <span id="alert-badge" style="margin-left:auto; font-size:10px; background:var(--danger); padding:2px 6px; border-radius:10px; color:white; display:none">0</span></div>
   </div>
-  <div class="sb-foot">
-    <div class="dot-row">
+
+  <div class="sb-footer">
+    <div class="conn-row">
       <div class="dot" id="conn-dot"></div>
-      <span id="conn-text">Connexion...</span>
+      <span id="conn-text">Déconnecté</span>
     </div>
-    <div class="sb-url" id="api-url">127.0.0.1:5000</div>
+    <div class="sb-url">api.smarthome.local:5000</div>
   </div>
 </aside>
 
-<!-- MAIN -->
 <main class="main">
   <div class="topbar">
-    <div class="page-title">
-      <h2 id="page-h2">Tableau de Bord</h2>
-      <p id="page-sub">smarthome/energy — ESP32 simulator</p>
-    </div>
+    <h2 id="view-title">Aperçu Global</h2>
     <div class="topbar-right">
-      <div class="time-badge" id="clock">--:--:--</div>
-      <button class="rfbtn" id="rfbtn" onclick="doRefresh()">
-        <span class="spn">↻</span> Actualiser
-      </button>
+      <div class="clock" id="clock">00:00:00</div>
+      <button class="btn-c" onclick="location.reload()" style="padding: 8px 16px; background: rgba(255,255,255,0.05)">Actualiser</button>
     </div>
   </div>
 
-  <!-- ANOMALY BANNER -->
-  <div class="anomaly-banner" id="anomaly-banner">
-    <div class="pr"></div>
-    <strong style="color:var(--danger)">Anomalie détectée</strong>
-    <span style="color:var(--tx2);font-size:11px" id="anomaly-msg">— Surconsommation détectée par le modèle IA.</span>
-  </div>
-
-  <!-- METRICS -->
-  <div class="metrics-grid">
-    <div class="mc">
-      <div class="mc-accent" style="background:linear-gradient(90deg,var(--ac),var(--ac2))"></div>
-      <div class="mc-ico" style="background:rgba(0,229,176,.1)">⚡</div>
-      <div class="mc-lbl">Tension moyenne</div>
-      <div class="mc-val" id="gv-tension" style="color:var(--ac)">—<span class="mc-unit">V</span></div>
-      <div class="mc-sub" id="gs-tension">En attente...</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Puissance Totale</div>
+      <div class="stat-val" id="st-p">0<span class="stat-unit">W</span></div>
+      <div class="stat-bar" style="background: var(--primary)"></div>
     </div>
-    <div class="mc">
-      <div class="mc-accent" style="background:linear-gradient(90deg,var(--ac2),var(--purple))"></div>
-      <div class="mc-ico" style="background:rgba(14,165,233,.1)">〰️</div>
-      <div class="mc-lbl">Courant total actif</div>
-      <div class="mc-val" id="gv-courant" style="color:var(--ac2)">—<span class="mc-unit">A</span></div>
-      <div class="mc-sub" id="gs-courant">Appareils ON seulement</div>
+    <div class="stat-card">
+      <div class="stat-label">Tension Secteur</div>
+      <div class="stat-val" id="st-v">0<span class="stat-unit">V</span></div>
+      <div class="stat-bar" style="background: var(--blue)"></div>
     </div>
-    <div class="mc">
-      <div class="mc-accent" style="background:linear-gradient(90deg,var(--warn),#f97316)"></div>
-      <div class="mc-ico" style="background:rgba(245,158,11,.1)">🔆</div>
-      <div class="mc-lbl">Puissance totale active</div>
-      <div class="mc-val" id="gv-puissance" style="color:var(--warn)">—<span class="mc-unit">W</span></div>
-      <div class="mc-sub" id="gs-puissance">Appareils ON seulement</div>
+    <div class="stat-card">
+      <div class="stat-label">Intensité Totale</div>
+      <div class="stat-val" id="st-c">0.00<span class="stat-unit">A</span></div>
+      <div class="stat-bar" style="background: var(--violet)"></div>
     </div>
-    <div class="mc">
-      <div class="mc-accent" style="background:linear-gradient(90deg,var(--purple),#ec4899)"></div>
-      <div class="mc-ico" style="background:rgba(167,139,250,.1)">🔋</div>
-      <div class="mc-lbl">Énergie totale</div>
-      <div class="mc-val" id="gv-energie" style="color:var(--purple)">—<span class="mc-unit">kWh</span></div>
-      <div class="mc-sub" id="gs-energie">Somme tous appareils actifs</div>
+    <div class="stat-card">
+      <div class="stat-label">Énergie (24h)</div>
+      <div class="stat-val" id="st-e">0.0<span class="stat-unit">kWh</span></div>
+      <div class="stat-bar" style="background: var(--warn)"></div>
     </div>
   </div>
 
-  <!-- DEVICES + CHART -->
-  <div class="main-grid">
-    <div class="devices-panel">
-      <div class="panel-head">
-        <div>
-          <div class="panel-title">Appareils connectés</div>
-          <div class="panel-sub">Mesures uniquement pour appareils ON</div>
-        </div>
-        <div style="font-size:11px;color:var(--tx2);text-align:right">
-          <span id="active-count" style="color:var(--ac);font-weight:700">0</span>
-          <span style="color:var(--tx3)"> / 4 actifs</span>
+  <div class="layout-grid">
+    <div class="panel">
+      <div class="panel-title">Appareils <span id="active-count">0/4 actifs</span></div>
+      <div class="dev-list" id="dev-list">
+        <!-- Cards injected by JS -->
+      </div>
+      
+      <div class="alerts-col">
+        <div class="panel-title">Dernières Alertes</div>
+        <div id="alerts-box">
+           <p style="font-size:12px; color:var(--tx-muted); text-align:center; padding:20px">Aucune alerte récente</p>
         </div>
       </div>
-      <div class="dev-grid" id="dev-grid"></div>
     </div>
 
     <div class="chart-panel">
-      <div class="panel-head">
-        <div>
-          <div class="panel-title">Puissance en temps réel</div>
-          <div class="panel-sub">Puissance active (W) — appareils ON</div>
+      <div class="chart-header">
+        <div class="chart-title">
+          <h3 id="chart-h3">Historique de consommation</h3>
+          <p id="chart-sub">Toutes les sources confondues</p>
         </div>
-        <div class="tf-row">
-          <button class="tf active" onclick="setH(1,this)">1H</button>
-          <button class="tf" onclick="setH(6,this)">6H</button>
-          <button class="tf" onclick="setH(24,this)">24H</button>
-        </div>
-      </div>
-      <canvas id="pwChart" style="flex:1;min-height:0"></canvas>
-    </div>
-  </div>
-
-  <!-- ALERTS + STATUS -->
-  <div class="bottom-grid">
-    <div class="alerts-panel">
-      <div class="panel-head">
-        <div>
-          <div class="panel-title">Alertes IA récentes</div>
-          <div class="panel-sub">Détection anomalies — SmartHomeAlerts</div>
-        </div>
-        <button class="tf" onclick="fetchAlerts()" style="padding:4px 10px">↻</button>
-      </div>
-      <div class="alerts-list" id="alerts-box">
-        <div class="empty"><div class="empty-icon">🔔</div>Chargement...</div>
-      </div>
-    </div>
-
-    <div class="status-panel">
-      <div class="panel-head">
-        <div>
-          <div class="panel-title">État des services</div>
-          <div class="panel-sub">Infrastructure AWS & backend</div>
+        <div class="time-filters">
+          <button class="tf-btn active" onclick="setH(1,this)">1H</button>
+          <button class="tf-btn" onclick="setH(6,this)">6H</button>
+          <button class="tf-btn" onclick="setH(24,this)">24H</button>
         </div>
       </div>
-      <div class="svc-list">
-        <div class="sc">
-          <div class="sind off" id="si-flask"></div>
-          <div><div class="sn">Flask Backend</div><div class="sd" id="sd-flask">Vérification...</div></div>
-          <div class="svc-extra" id="sx-flask"></div>
-        </div>
-        <div class="sc">
-          <div class="sind off" id="si-dynamo"></div>
-          <div><div class="sn">DynamoDB Alertes</div><div class="sd" id="sd-dynamo">Vérification...</div></div>
-          <div class="svc-extra" id="sx-dynamo"></div>
-        </div>
-        <div class="sc">
-          <div class="sind off" id="si-iot"></div>
-          <div><div class="sn">AWS IoT Core</div><div class="sd" id="sd-iot">Vérification...</div></div>
-          <div class="svc-extra" id="sx-iot"></div>
-        </div>
-        <div class="sc">
-          <div class="sind off" id="si-ia"></div>
-          <div><div class="sn">Modèle IA — Isolation Forest</div><div class="sd" id="sd-ia">Vérification...</div></div>
-          <div class="svc-extra" id="sx-ia"></div>
-        </div>
+      <div class="chart-container">
+        <canvas id="mainChart"></canvas>
       </div>
     </div>
   </div>
 </main>
 
-<div class="toast-wrap" id="toasts"></div>
+<div id="toast-box"></div>
 
 <script>
-// ═══════════════════════════════════════════════
-//  CONFIG
-// ═══════════════════════════════════════════════
 const API = 'http://127.0.0.1:5000/api';
-let currentHours = 1;
-let chart;
-let isDemo = false;
-
-// Abort controllers to cancel in-flight requests on next cycle
-let latestCtrl = null;
-let alertsCtrl  = null;
-
-// Track which device anomalies have already been triggered this cycle
-// to avoid re-triggering on every refresh
-const triggeredAnomalies = new Set();
-
-// Device definitions
 const DEVICES = [
-  { id:'principal', name:'Appareil principal', detail:'Prise générale — circuit principal', icon:'🔌', threshold:450  },
-  { id:'clim',      name:'Climatiseur',         detail:'Salon — 12 000 BTU',                icon:'❄️', threshold:1300 },
-  { id:'chauffe',   name:'Chauffage',            detail:'Chambre — radiateur électrique',    icon:'🔥', threshold:1000 },
-  { id:'lumiere',   name:'Éclairage',            detail:'Toutes pièces — LED',               icon:'💡', threshold:100  },
+  { id: 'principal', name: 'Circuit Principal', icon: '⚡', detail: 'Entrée générale' },
+  { id: 'clim', name: 'Climatisation', icon: '❄️', detail: 'Unité salon' },
+  { id: 'chauffe', name: 'Chauffe-eau', icon: '🔥', detail: 'Ballon 200L' },
+  { id: 'lumiere', name: 'Éclairage', icon: '💡', detail: 'Toutes zones' }
 ];
 
-// Runtime state per device
+let selectedDeviceId = null;
+let currentHours = 1;
+let chart = null;
 const devState = {};
+const lastDbTs = {};
+const lastSeen = {};
+
+// Initialize state
 DEVICES.forEach(d => {
-  devState[d.id] = { on: false, anomaly: false, voltage: 220, current: 0, power: 0, energy: 0 };
+  devState[d.id] = { on: true, voltage: 0, current: 0, power: 0, energy: 0, anomaly: false };
 });
 
-// ═══════════════════════════════════════════════
-//  CLOCK
-// ═══════════════════════════════════════════════
-function updateClock(){
-  document.getElementById('clock').textContent = new Date().toLocaleTimeString('fr-FR');
-}
-setInterval(updateClock, 1000);
-updateClock();
+function initChart() {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+  gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+  gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
 
-// ═══════════════════════════════════════════════
-//  TOAST
-// ═══════════════════════════════════════════════
-function showToast(msg, type = 'success'){
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  const icons = { success:'✅', error:'❌', warn:'⚠️' };
-  t.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${msg}</span>`;
-  document.getElementById('toasts').appendChild(t);
-  setTimeout(() => t.remove(), 4000);
-}
-
-// ═══════════════════════════════════════════════
-//  NAV
-// ═══════════════════════════════════════════════
-function navTo(el, h, s){
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('page-h2').textContent = h;
-  document.getElementById('page-sub').textContent = s;
-}
-
-// ═══════════════════════════════════════════════
-//  FETCH HELPER — cancellable with timeout
-// ═══════════════════════════════════════════════
-function fetchWithTimeout(url, options = {}, timeoutMs = 4000){
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-  return fetch(url, { ...options, signal: ctrl.signal })
-    .finally(() => clearTimeout(timer));
-}
-
-// ═══════════════════════════════════════════════
-//  CHART
-// ═══════════════════════════════════════════════
-function initChart(){
-  const ctx = document.getElementById('pwChart').getContext('2d');
   chart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: [],
       datasets: [{
-        label: 'Puissance (W)', data: [],
-        borderColor: '#00e5b0', backgroundColor: 'rgba(0,229,176,0.06)',
-        borderWidth: 2, pointRadius: 2, pointBackgroundColor: '#00e5b0',
-        fill: true, tension: .4,
-      },{
-        label: 'Seuil', data: [],
-        borderColor: 'rgba(244,63,94,0.45)', backgroundColor: 'transparent',
-        borderWidth: 1, borderDash: [6,4], pointRadius: 0, fill: false,
+        label: 'Puissance',
+        data: [],
+        borderColor: '#10b981',
+        borderWidth: 3,
+        pointRadius: 0,
+        fill: true,
+        backgroundColor: gradient,
+        tension: 0.4
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false, animation: { duration: 400 },
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color:'#3d526e', font:{size:9, family:'IBM Plex Mono'}, maxTicksLimit:8 }, grid:{color:'rgba(255,255,255,0.03)'} },
-        y: { ticks: { color:'#3d526e', font:{size:9} }, grid:{color:'rgba(255,255,255,0.03)'} },
+        x: { grid: { display: false }, ticks: { color: '#52525b', font: { size: 10, family: 'JetBrains Mono' } } },
+        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#52525b', font: { size: 10 } } }
       }
     }
   });
 }
 
-function setH(h, el){
-  currentHours = h;
-  document.querySelectorAll('.tf-row .tf').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  isDemo ? loadDemoChart() : fetchHistory();
-}
-
-// ═══════════════════════════════════════════════
-//  BUILD DEVICE CARDS
-// ═══════════════════════════════════════════════
-function buildDeviceCards(){
-  const grid = document.getElementById('dev-grid');
-  grid.innerHTML = '';
-  DEVICES.forEach(d => {
-    const el = document.createElement('div');
-    el.id = 'dc-' + d.id;
-    el.className = 'dev-card';
-    el.innerHTML = `
-      <div class="dev-top">
-        <div class="dev-left">
-          <div class="dev-ico" id="dico-${d.id}">${d.icon}</div>
-          <div>
-            <div class="dev-name">${d.name}</div>
-            <div class="dev-detail">${d.detail}</div>
-          </div>
-        </div>
-        <label class="tgl">
-          <input type="checkbox" id="tog-${d.id}" onchange="toggleDevice('${d.id}',this.checked)">
-          <span class="sldr"></span>
-        </label>
-      </div>
-      <div class="dev-mid">
-        <span class="badge off" id="badge-${d.id}">Inactif</span>
-        <span class="threshold">Seuil IA: ${d.threshold}W</span>
-      </div>
-      <div class="dev-metrics" id="dm-${d.id}" style="display:none">
-        <div class="dm"><div class="dm-lbl">Tension</div><div class="dm-val" id="dm-v-${d.id}">220<span class="dm-unit"> V</span></div></div>
-        <div class="dm"><div class="dm-lbl">Courant</div><div class="dm-val" id="dm-c-${d.id}">—<span class="dm-unit"> A</span></div></div>
-        <div class="dm"><div class="dm-lbl">Puissance</div><div class="dm-val" id="dm-p-${d.id}">—<span class="dm-unit"> W</span></div></div>
-      </div>`;
-    grid.appendChild(el);
-  });
-}
-
-function updateDeviceCard(id){
-  const s = devState[id];
-  const card   = document.getElementById('dc-' + id);
-  const badge  = document.getElementById('badge-' + id);
-  const tog    = document.getElementById('tog-' + id);
-  const metrics = document.getElementById('dm-' + id);
-
-  card.className = 'dev-card' + (s.anomaly ? ' anomaly' : s.on ? ' on' : '');
-  tog.checked  = s.on && !s.anomaly;
-  tog.disabled = s.anomaly;
-
-  if(s.anomaly){
-    badge.className = 'badge anomaly';
-    badge.textContent = 'Anomalie IA';
-  } else if(s.on){
-    badge.className = 'badge on';
-    badge.textContent = 'Actif';
-  } else {
-    badge.className = 'badge off';
-    badge.textContent = 'Inactif';
-  }
-
-  const show = s.on && !s.anomaly;
-  metrics.style.display = show ? 'grid' : 'none';
-
-  if(show){
-    document.getElementById('dm-v-' + id).innerHTML = `${parseFloat(s.voltage).toFixed(1)}<span class="dm-unit"> V</span>`;
-    document.getElementById('dm-c-' + id).innerHTML = `${parseFloat(s.current).toFixed(2)}<span class="dm-unit"> A</span>`;
-    document.getElementById('dm-p-' + id).innerHTML = `${parseFloat(s.power).toFixed(0)}<span class="dm-unit"> W</span>`;
-  }
-}
-
-// ═══════════════════════════════════════════════
-//  SUMMARY METRICS
-//  BUG FIX: sum energy across ALL devices instead of reading one device
-// ═══════════════════════════════════════════════
-function updateSummary(){
-  let totalPower = 0, totalCurrent = 0, totalEnergy = 0, activeCount = 0;
-  let voltages = [];
-
+function buildCards() {
+  const container = document.getElementById('dev-list');
+  container.innerHTML = '';
   DEVICES.forEach(d => {
     const s = devState[d.id];
-    if(s.on && !s.anomaly){
-      totalPower   += parseFloat(s.power   || 0);
-      totalCurrent += parseFloat(s.current || 0);
-      totalEnergy  += parseFloat(s.energy  || 0);
-      voltages.push(parseFloat(s.voltage   || 220));
-      activeCount++;
-    }
+    const card = document.createElement('div');
+    card.className = `dev-card ${selectedDeviceId === d.id ? 'active' : ''} ${s.on ? 'active-on' : ''} ${s.anomaly ? 'anomaly' : ''}`;
+    card.onclick = () => selectDevice(d.id);
+    
+    card.innerHTML = `
+      <div class="dev-header">
+        <div class="dev-icon">${d.icon}</div>
+        <div class="dev-info">
+          <div class="dev-name">${d.name}</div>
+          <div class="dev-status">${s.anomaly ? '⚠️ ANOMALIE' : s.on ? '● ACTIF' : '○ ÉTEINT'}</div>
+        </div>
+      </div>
+      <div class="dev-metrics">
+        <div class="m-item">
+          <div class="m-label">Puissance</div>
+          <div class="m-val">${s.power.toFixed(0)} W</div>
+        </div>
+        <div class="m-item">
+          <div class="m-label">Tension</div>
+          <div class="m-val">${s.voltage.toFixed(1)} V</div>
+        </div>
+      </div>
+      <div class="dev-controls">
+        <button class="btn-c ${s.on ? 'on-active' : ''}" onclick="event.stopPropagation(); setRelay('${d.id}', 'ON')">ON</button>
+        <button class="btn-c ${!s.on ? 'off-active' : ''}" onclick="event.stopPropagation(); setRelay('${d.id}', 'OFF')">OFF</button>
+      </div>
+    `;
+    container.appendChild(card);
   });
-
-  const avgVoltage = voltages.length
-    ? (voltages.reduce((a, b) => a + b, 0) / voltages.length)
-    : 220;
-
-  document.getElementById('gv-tension').innerHTML  = `${avgVoltage.toFixed(1)}<span class="mc-unit">V</span>`;
-  document.getElementById('gs-tension').textContent = `Moyenne ${activeCount} appareil${activeCount > 1 ? 's' : ''} actif${activeCount > 1 ? 's' : ''}`;
-  document.getElementById('gv-courant').innerHTML   = `${totalCurrent.toFixed(2)}<span class="mc-unit">A</span>`;
-  document.getElementById('gs-courant').textContent = `${activeCount} appareil${activeCount > 1 ? 's' : ''} ON`;
-  document.getElementById('gv-puissance').innerHTML = `${totalPower.toFixed(0)}<span class="mc-unit">W</span>`;
-  document.getElementById('gs-puissance').textContent = totalPower > 1500 ? '⚠️ Charge élevée' : 'Charge normale';
-  document.getElementById('gv-energie').innerHTML   = `${totalEnergy.toFixed(4)}<span class="mc-unit">kWh</span>`;
-  document.getElementById('gs-energie').textContent = `Somme ${activeCount} appareils actifs`;
-  document.getElementById('active-count').textContent = activeCount;
-
-  const anyAnomaly = DEVICES.some(d => devState[d.id].anomaly);
-  document.getElementById('anomaly-banner').classList.toggle('show', anyAnomaly);
 }
 
-// ═══════════════════════════════════════════════
-//  TOGGLE DEVICE — relay command
-// ═══════════════════════════════════════════════
-function toggleDevice(id, on){
-  const s = devState[id];
-  if(s.anomaly){ return; }
-  s.on = on;
-  updateDeviceCard(id);
-  updateSummary();
-
-  const name = DEVICES.find(d => d.id === id).name;
-
-  if(isDemo){
-    showToast(`${name}: ${on ? 'Allumé 🟢' : 'Éteint ⚫'}`, on ? 'success' : 'warn');
-    return;
+function selectDevice(id) {
+  if (selectedDeviceId === id) {
+    selectedDeviceId = null;
+    document.getElementById('view-title').textContent = 'Aperçu Global';
+    document.getElementById('chart-h3').textContent = 'Historique de consommation';
+    document.getElementById('chart-sub').textContent = 'Toutes les sources confondues';
+  } else {
+    selectedDeviceId = id;
+    const d = DEVICES.find(x => x.id === id);
+    document.getElementById('view-title').textContent = d.name;
+    document.getElementById('chart-h3').textContent = `Historique : ${d.name}`;
+    document.getElementById('chart-sub').textContent = d.detail;
   }
-
-  // BUG FIX: correct payload format matching ai_monitor.py / smarthome_simulator.py
-  fetchWithTimeout(`${API}/relay`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ device: id, command: on ? 'ON' : 'OFF' }),
-  })
-  .then(r => r.json())
-  .then(j => {
-    if(!j.success) showToast(`Erreur relay: ${j.error || '?'}`, 'error');
-  })
-  .catch(() => showToast('Backend inaccessible', 'error'));
-
-  showToast(`${name}: ${on ? 'ON' : 'OFF'}`, on ? 'success' : 'warn');
+  buildCards();
+  fetchHistory();
 }
 
-// ═══════════════════════════════════════════════
-//  TRIGGER ANOMALY (once per device, not on every refresh)
-// ═══════════════════════════════════════════════
-function triggerAnomaly(id, power, score){
-  if(triggeredAnomalies.has(id)) return;   // BUG FIX: guard against repeated triggers
-  triggeredAnomalies.add(id);
-
-  const d = DEVICES.find(x => x.id === id);
-  const s = devState[id];
-  s.anomaly = true;
-  s.on = false;
-  updateDeviceCard(id);
-
-  document.getElementById('anomaly-msg').textContent =
-    `— ${d.name}: ${power}W > seuil ${d.threshold}W (score IA: ${score})`;
-
-  showToast(`🚨 ANOMALIE — ${d.name} (${power}W) éteint automatiquement`, 'error');
-  updateSummary();
-
-  // Auto-recover after 30s, then allow re-triggering
-  setTimeout(() => {
-    s.anomaly = false;
-    triggeredAnomalies.delete(id);
-    updateDeviceCard(id);
-    updateSummary();
-    showToast(`${d.name} — anomalie résolue, prêt`, 'success');
-    addAlertItem({
-      cls:'ok', ico:'✅',
-      title:`Système normalisé — ${d.name}`,
-      det:'Consommation revenue à la normale',
-      badge:'OK',
-    });
-  }, 30000);
-}
-
-function addAlertItem(a){
-  const box = document.getElementById('alerts-box');
-  const ts  = new Date().toLocaleTimeString('fr-FR');
-  const el  = document.createElement('div');
-  el.className = 'ai';
-  el.innerHTML = `
-    <div class="aico ${a.cls}">${a.ico}</div>
-    <div style="flex:1">
-      <div class="atit">${a.title}</div>
-      <div class="adet">${a.det}</div>
-      <div class="atm">${ts}</div>
-    </div>
-    <span class="abadge ${a.cls}">${a.badge}</span>`;
-  box.prepend(el);
-  const empty = box.querySelector('.empty');
-  if(empty) empty.remove();
-  while(box.children.length > 10) box.lastChild.remove();
-}
-
-// ═══════════════════════════════════════════════
-//  FETCH — LATEST (one record per device)
-//  BUG FIX: iterate all items, one per device_id
-// ═══════════════════════════════════════════════
-async function fetchLatest(){
-  if(latestCtrl) latestCtrl.abort();
-  latestCtrl = new AbortController();
-  const timer = setTimeout(() => latestCtrl.abort(), 4000);
-
-  try{
-    const res  = await fetch(`${API}/data/latest`, { signal: latestCtrl.signal });
-    const json = await res.json();
-    clearTimeout(timer);
-
-    if(json.success && Array.isArray(json.data)){
-      json.data.forEach(item => {
-        const id = item.device_id;
-        if(!devState[id]) return;            // unknown device, skip
-        const s = devState[id];
-        s.voltage = parseFloat(item.voltage || item.tension || 220);
-        s.current = parseFloat(item.current || item.courant || 0);
-        s.power   = parseFloat(item.power   || item.puissance || 0);
-        s.energy  = parseFloat(item.energy  || item.energie   || 0);
-        // Only update on state if device wasn't turned off by anomaly
-        if(!s.anomaly){
+async function fetchLatest() {
+  try {
+    const res = await fetch(`${API}/data/latest?t=${Date.now()}`);
+    const j = await res.json();
+    if (j.success) {
+      let totalP = 0, totalC = 0, totalV = 0, countOn = 0;
+      j.data.forEach(item => {
+        const s = devState[item.device_id];
+        if (!s) return;
+        
+        s.power = parseFloat(item.power);
+        s.voltage = parseFloat(item.voltage);
+        s.current = parseFloat(item.current);
+        s.energy = parseFloat(item.energy);
+        
+        if (s.power > 0) {
           s.on = true;
-          updateDeviceCard(id);
+          countOn++;
+          totalP += s.power;
+          totalC += s.current;
+          totalV = s.voltage; // Use last voltage as reference
+        } else {
+          s.on = false;
+        }
+        
+        // Stale detection
+        let ts = item.timestamp || '';
+        ts = ts.replace(/(\.\d{3})\d+Z$/, '$1Z');
+        if (ts !== lastDbTs[item.device_id]) {
+          lastDbTs[item.device_id] = ts;
+          lastSeen[item.device_id] = Date.now();
         }
       });
-      updateSummary();
+      
+      document.getElementById('st-p').innerHTML = `${totalP.toFixed(0)}<span class="stat-unit">W</span>`;
+      document.getElementById('st-v').innerHTML = `${totalV.toFixed(1)}<span class="stat-unit">V</span>`;
+      document.getElementById('st-c').innerHTML = `${totalC.toFixed(2)}<span class="stat-unit">A</span>`;
+      document.getElementById('active-count').textContent = `${countOn}/4 actifs`;
+      
+      buildCards();
+      setConn(true);
     }
-  } catch(e){
-    clearTimeout(timer);
-    if(e.name !== 'AbortError') console.warn('fetchLatest:', e.message);
-  }
+  } catch(e) { setConn(false); }
 }
 
-// ═══════════════════════════════════════════════
-//  FETCH — HISTORY
-// ═══════════════════════════════════════════════
-async function fetchHistory(){
-  try{
-    const res  = await fetchWithTimeout(`${API}/data/history?hours=${currentHours}`);
-    const json = await res.json();
-    if(json.success && Array.isArray(json.data) && json.data.length > 0){
-      const pts    = [...json.data].reverse();
-      const labels = pts.map(d => {
-        const t = new Date(d.time || d.timestamp);
+async function fetchHistory() {
+  try {
+    let url = `${API}/data/history?hours=${currentHours}&t=${Date.now()}`;
+    if (selectedDeviceId) url += `&device_id=${selectedDeviceId}`;
+    
+    const res = await fetch(url);
+    const j = await res.json();
+    if (j.success && j.data.length > 0) {
+      const data = j.data;
+      const labels = data.map(d => {
+        const t = new Date(d.timestamp);
         return `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
       });
-      const values  = pts.map(d => parseFloat(d.power || d.puissance || 0));
-      // BUG FIX: use average threshold across active devices instead of hardcoded 500
-      const activeDevs = DEVICES.filter(d => devState[d.id].on && !devState[d.id].anomaly);
-      const avgThreshold = activeDevs.length
-        ? activeDevs.reduce((s, d) => s + d.threshold, 0) / activeDevs.length
-        : 500;
-
+      const values = data.map(d => d.power);
+      
       chart.data.labels = labels;
       chart.data.datasets[0].data = values;
-      chart.data.datasets[1].data = values.map(() => avgThreshold);
+      
+      // Update chart color based on selection
+      if (selectedDeviceId) {
+        chart.data.datasets[0].borderColor = '#3b82f6';
+        chart.data.datasets[0].backgroundColor = 'rgba(59, 130, 246, 0.1)';
+      } else {
+        chart.data.datasets[0].borderColor = '#10b981';
+        chart.data.datasets[0].backgroundColor = 'rgba(16, 185, 129, 0.1)';
+      }
+      
       chart.update();
-    } else {
-      loadDemoChart();
     }
-  } catch(e){ loadDemoChart(); }
+  } catch(e) {}
 }
 
-// ═══════════════════════════════════════════════
-//  FETCH — ALERTS (SmartHomeAlerts DynamoDB table)
-//  BUG FIX: read `status === "ANOMALY"` not `a.anomaly / a.type / a.severity`
-// ═══════════════════════════════════════════════
-async function fetchAlerts(){
-  if(alertsCtrl) alertsCtrl.abort();
-  alertsCtrl = new AbortController();
-  const timer = setTimeout(() => alertsCtrl.abort(), 4000);
-
-  try{
-    const res  = await fetch(`${API}/alerts`, { signal: alertsCtrl.signal });
-    const json = await res.json();
-    clearTimeout(timer);
-
-    if(json.success && Array.isArray(json.data) && json.data.length > 0){
-      const box = document.getElementById('alerts-box');
+async function fetchAlerts() {
+  try {
+    const res = await fetch(`${API}/alerts?t=${Date.now()}`);
+    const j = await res.json();
+    const box = document.getElementById('alerts-box');
+    const badge = document.getElementById('alert-badge');
+    
+    if (j.success && j.data.length > 0) {
       box.innerHTML = '';
-      let anomalyCount = 0;
-
-      json.data.slice(0, 8).forEach(a => {
-        // BUG FIX: correct field from DynamoDB schema (status: "ANOMALY" | "NORMAL")
-        const isAnomaly = (a.status || '').toUpperCase() === 'ANOMALY';
-        const cls   = isAnomaly ? 'danger' : 'ok';
-        const ico   = isAnomaly ? '🚨' : '✅';
-        const badge = isAnomaly ? 'CRITIQUE' : 'OK';
-
-        const score = a.score ? ` — Score: ${parseFloat(a.score).toFixed(4)}` : '';
-        const power = a.power ? `${parseFloat(a.power).toFixed(0)}W` : '';
-
-        addAlertItem({
-          cls, ico, badge,
-          title: isAnomaly
-            ? `🚨 Anomalie IA — ${a.device_id || '?'}`
-            : `✅ Normal — ${a.device_id || '?'}`,
-          det: `${power}${score}` || 'Détecté par modèle IA',
-        });
-
-        if(isAnomaly){
-          anomalyCount++;
-          // BUG FIX: use device_id (not a.device) — and only trigger once per device
-          const devId = a.device_id;
-          if(devId && devState[devId] && devState[devId].on && !devState[devId].anomaly){
-            triggerAnomaly(devId, power.replace('W',''), a.score || '-0.00');
-          }
+      let critCount = 0;
+      j.data.slice(0, 5).forEach(a => {
+        const isAnom = a.status === 'ANOMALY';
+        if (isAnom) critCount++;
+        
+        const d = new Date(a.timestamp);
+        const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        
+        const item = document.createElement('div');
+        item.className = 'alert-item';
+        item.innerHTML = `
+          <div class="a-icon ${isAnom ? 'danger' : 'ok'}">${isAnom ? '🚨' : '✅'}</div>
+          <div class="a-content">
+            <div class="a-title">${isAnom ? 'Anomalie détectée' : 'État normal'} — ${a.device_id}</div>
+            <div class="a-detail">Puissance: ${a.power}W | Score: ${parseFloat(a.score).toFixed(2)}</div>
+            <div class="a-time">${time}</div>
+          </div>
+        `;
+        box.appendChild(item);
+        
+        // Trigger visual anomaly if recent
+        if (isAnom && (Date.now() - d.getTime() < 60000)) {
+          devState[a.device_id].anomaly = true;
+          buildCards();
         }
       });
-
-      document.getElementById('alert-count').textContent = anomalyCount;
-    } else {
-      document.getElementById('alerts-box').innerHTML =
-        `<div class="empty"><div class="empty-icon">✅</div>Aucune alerte active</div>`;
-      document.getElementById('alert-count').textContent = '0';
+      
+      if (critCount > 0) {
+        badge.textContent = critCount;
+        badge.style.display = 'block';
+      } else {
+        badge.style.display = 'none';
+      }
     }
-  } catch(e){
-    clearTimeout(timer);
-    if(e.name !== 'AbortError'){
-      document.getElementById('alerts-box').innerHTML =
-        `<div class="empty"><div class="empty-icon">⚠️</div>Impossible de charger les alertes</div>`;
+  } catch(e) {}
+}
+
+async function setRelay(id, cmd) {
+  try {
+    const res = await fetch(`${API}/relay`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ device: id, command: cmd })
+    });
+    const j = await res.json();
+    if (j.success) {
+      devState[id].on = (cmd === 'ON');
+      devState[id].anomaly = false;
+      toast(`${id.toUpperCase()} → ${cmd}`, 'ok');
+      buildCards();
     }
-  }
+  } catch(e) { toast('Erreur de commande', 'error'); }
 }
 
-// ═══════════════════════════════════════════════
-//  FETCH — STATUS
-// ═══════════════════════════════════════════════
-async function fetchStatus(){
-  try{
-    const res  = await fetchWithTimeout(`${API}/status`);
-    const json = await res.json();
-    if(json.success){
-      setConnected(true);
-      isDemo = false;
-      const svc = json.services || {};
-      setService('flask',  true,                               'Opérationnel',      new Date().toLocaleTimeString('fr-FR'));
-      setService('dynamo', svc.dynamodb === 'connected',       svc.dynamodb === 'connected' ? 'Connecté' : 'Déconnecté');
-      setService('iot',    svc.iot      === 'connected',       svc.iot      === 'connected' ? 'Connecté' : 'Déconnecté');
-      setService('ia',     svc.ia === 'connected' || svc.model === 'loaded', svc.ia === 'connected' ? 'Modèle actif' : 'Non chargé');
-    }
-  } catch(e){ setOffline(); }
+function setH(h, btn) {
+  currentHours = h;
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  fetchHistory();
 }
 
-function setService(id, ok, label, extra = ''){
-  document.getElementById('si-' + id).className = 'sind ' + (ok ? 'ok' : 'off');
-  document.getElementById('sd-' + id).textContent = label;
-  const sx = document.getElementById('sx-' + id);
-  if(sx) sx.textContent = extra;
+function toast(msg, type) {
+  const box = document.getElementById('toast-box');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<span>${type === 'ok' ? '✅' : '❌'}</span> ${msg}`;
+  box.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
 }
 
-function setConnected(on){
-  const dot  = document.getElementById('conn-dot');
-  dot.className = 'dot' + (on ? ' live' : ' off');
-  document.getElementById('conn-text').textContent = on ? 'Connecté' : 'Mode démo';
+function setConn(on) {
+  const dot = document.getElementById('conn-dot');
+  const txt = document.getElementById('conn-text');
+  if (on) { dot.className = 'dot live'; txt.textContent = 'Connecté'; }
+  else { dot.className = 'dot off'; txt.textContent = 'Erreur API'; }
 }
 
-function setOffline(){
-  isDemo = true;
-  setConnected(false);
-  ['flask','dynamo','iot','ia'].forEach(s => setService(s, false, 'Backend hors ligne'));
-}
+// Clock
+setInterval(() => {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('fr-FR');
+}, 1000);
 
-// ═══════════════════════════════════════════════
-//  DEMO DATA
-// ═══════════════════════════════════════════════
-function loadDemoMetrics(){
-  DEVICES.forEach(d => {
-    const s = devState[d.id];
-    if(!s.on || s.anomaly) return;
-    s.voltage = parseFloat((218 + Math.random() * 5).toFixed(2));
-    s.current = parseFloat((d.id === 'lumiere' ? 0.2 + Math.random()*0.1 : 1 + Math.random() * 4).toFixed(2));
-    s.power   = parseFloat((s.voltage * s.current).toFixed(2));
-    s.energy  = parseFloat(((s.energy || 0) + s.power * 5 / 3_600_000).toFixed(6));
-    updateDeviceCard(d.id);
-  });
-  updateSummary();
-}
-
-function loadDemoChart(){
-  const now = Date.now();
-  const pts = currentHours === 1 ? 20 : currentHours === 6 ? 36 : 50;
-  const gap = currentHours * 60 / pts;
-  const labels = Array.from({length: pts}, (_, i) => {
-    const t = new Date(now - (pts - 1 - i) * gap * 60000);
-    return `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
-  });
-  const data = Array.from({length: pts}, () => parseFloat((280 + Math.random() * 200).toFixed(1)));
-  // BUG FIX: threshold line uses average of active device thresholds
-  const activeDevs = DEVICES.filter(d => devState[d.id].on && !devState[d.id].anomaly);
-  const avgThreshold = activeDevs.length
-    ? activeDevs.reduce((s, d) => s + d.threshold, 0) / activeDevs.length
-    : 500;
-
-  chart.data.labels = labels;
-  chart.data.datasets[0].data = data;
-  chart.data.datasets[1].data = data.map(() => avgThreshold);
-  chart.update();
-}
-
-function loadDemoAlerts(){
-  const demo = [
-    { cls:'danger', ico:'🚨', title:'Anomalie IA — clim',      det:'power=1380W > seuil 1300W — score=-0.71', badge:'CRITIQUE' },
-    { cls:'warn',   ico:'⚠️', title:'Surconsommation — chauffe', det:'power=1050W voltage=221V score=-0.65',   badge:'ATTENTION' },
-    { cls:'ok',     ico:'✅', title:'Normal — lumiere',          det:'power=61W voltage=219V score=-0.61',     badge:'OK' },
-    { cls:'ok',     ico:'✅', title:'Normal — principal',        det:'power=430W voltage=220V score=-0.62',    badge:'OK' },
-  ];
-  document.getElementById('alerts-box').innerHTML = '';
-  demo.forEach(a => addAlertItem(a));
-  document.getElementById('alert-count').textContent = demo.filter(a => a.cls !== 'ok').length;
-}
-
-// ═══════════════════════════════════════════════
-//  REFRESH
-// ═══════════════════════════════════════════════
-function doRefresh(){
-  const btn = document.getElementById('rfbtn');
-  btn.classList.add('loading');
-  const done = () => setTimeout(() => btn.classList.remove('loading'), 500);
-
-  if(isDemo){
-    loadDemoMetrics();
-    loadDemoChart();
-    loadDemoAlerts();
-    done();
-  } else {
-    Promise.all([fetchLatest(), fetchHistory(), fetchAlerts(), fetchStatus()]).finally(done);
-  }
-}
-
-// ═══════════════════════════════════════════════
-//  AUTO-REFRESH — BUG FIX: cancel previous requests before new cycle
-// ═══════════════════════════════════════════════
-let autoRefreshTimer = null;
-
-function scheduleRefresh(intervalMs){
-  if(autoRefreshTimer) clearInterval(autoRefreshTimer);
-  autoRefreshTimer = setInterval(() => {
-    if(isDemo){
-      loadDemoMetrics();
-    } else {
-      fetchLatest();
-      fetchAlerts();
-    }
-  }, intervalMs);
-}
-
-// ═══════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════
+// Loops
 initChart();
-buildDeviceCards();
+buildCards();
+fetchLatest();
+fetchHistory();
+fetchAlerts();
 
-// Demo: turn on all devices by default for visual feedback
-DEVICES.forEach(d => { devState[d.id].on = true; });
+setInterval(fetchLatest, 5000);
+setInterval(fetchHistory, 15000);
+setInterval(fetchAlerts, 10000);
 
-// Try real backend
-fetchWithTimeout(`${API}/status`)
-  .then(r => r.json())
-  .then(j => {
-    if(j.success){
-      isDemo = false;
-      setConnected(true);
-      fetchLatest();
-      fetchHistory();
-      fetchAlerts();
-      fetchStatus();
-      scheduleRefresh(5000);
-    } else {
-      throw new Error('API not ready');
-    }
-  })
-  .catch(() => {
-    setOffline();
-    DEVICES.forEach(d => updateDeviceCard(d.id));
-    loadDemoMetrics();
-    loadDemoChart();
-    loadDemoAlerts();
-    ['flask','dynamo','iot','ia'].forEach(s => setService(s, false, 'Backend hors ligne'));
-    scheduleRefresh(5000);
-  });
 </script>
 </body>
 </html>
