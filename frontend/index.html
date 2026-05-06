@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
@@ -222,15 +222,15 @@ body {
 
   <div class="nav-group">
     <div class="nav-label">Monitoring</div>
-    <div class="nav-item active" id="nav-dashboard" onclick="switchView('dashboard')"><span class="ni">📊</span>Tableau de Bord</div>
-    <div class="nav-item" id="nav-analysis" onclick="switchView('analysis')"><span class="ni">📈</span>Analyses</div>
-    <div class="nav-item" id="nav-alerts" onclick="switchView('alerts')"><span class="ni">🔔</span>Alertes <span id="alert-badge" style="margin-left:auto; font-size:10px; background:var(--danger); padding:2px 6px; border-radius:10px; color:white; display:none">0</span></div>
+    <div class="nav-item active" id="nav-dashboard" onclick="switchView('dashboard')"><span class="ni">📊</span>Dashboard</div>
+    <div class="nav-item" id="nav-analysis" onclick="switchView('analysis')"><span class="ni">📈</span>Analytics</div>
+    <div class="nav-item" id="nav-alerts" onclick="switchView('alerts')"><span class="ni">🔔</span>Alerts <span id="alert-badge" style="margin-left:auto; font-size:10px; background:var(--danger); padding:2px 6px; border-radius:10px; color:white; display:none">0</span></div>
   </div>
 
   <div class="sb-footer">
     <div class="conn-row">
       <div class="dot" id="conn-dot"></div>
-      <span id="conn-text">Déconnecté</span>
+      <span id="conn-text">Disconnected</span>
     </div>
     <div class="sb-url">api.smarthome.local:5000</div>
   </div>
@@ -238,10 +238,10 @@ body {
 
 <main class="main">
   <div class="topbar">
-    <h2 id="view-title">Aperçu Global</h2>
+    <h2 id="view-title">Global Overview</h2>
     <div class="topbar-right">
       <div class="clock" id="clock">00:00:00</div>
-      <button class="btn-c" onclick="location.reload()" style="padding: 8px 16px;">Actualiser</button>
+      <button class="btn-c" onclick="location.reload()" style="padding: 8px 16px;">Refresh</button>
     </div>
   </div>
 
@@ -249,22 +249,22 @@ body {
   <section id="view-dashboard" class="view-section active">
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-label">Puissance Totale</div>
+        <div class="stat-label">Total Power</div>
         <div class="stat-val" id="st-p">0<span class="stat-unit">W</span></div>
         <div class="stat-bar" style="background: var(--primary)"></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Tension Secteur</div>
+        <div class="stat-label">Grid Voltage</div>
         <div class="stat-val" id="st-v">0<span class="stat-unit">V</span></div>
         <div class="stat-bar" style="background: var(--blue)"></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Intensité Totale</div>
+        <div class="stat-label">Total Current</div>
         <div class="stat-val" id="st-c">0.00<span class="stat-unit">A</span></div>
         <div class="stat-bar" style="background: var(--violet)"></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Énergie (24h)</div>
+        <div class="stat-label">Energy (24h)</div>
         <div class="stat-val" id="st-e">0.0<span class="stat-unit">kWh</span></div>
         <div class="stat-bar" style="background: var(--warn)"></div>
       </div>
@@ -272,7 +272,7 @@ body {
 
     <!-- Highlighted Devices at the Top -->
     <div class="panel" style="margin-bottom: 24px;">
-      <div class="panel-title">État des Appareils <span id="active-count">0/4 actifs</span></div>
+      <div class="panel-title">Device Status <span id="active-count">0/4 active</span></div>
       <div id="dev-list" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
         <!-- Cards injected by JS -->
       </div>
@@ -282,8 +282,8 @@ body {
       <div class="chart-panel">
         <div class="chart-header">
           <div class="chart-title">
-            <h3 id="chart-h3">Historique de consommation</h3>
-            <p id="chart-sub">Toutes les sources confondues</p>
+            <h3 id="chart-h3">Consumption History</h3>
+            <p id="chart-sub">All sources combined</p>
           </div>
           <div class="time-filters">
             <button class="tf-btn active" onclick="setH(1,this)">1H</button>
@@ -297,9 +297,9 @@ body {
       </div>
 
       <div class="panel">
-        <div class="panel-title">Dernières Alertes</div>
+        <div class="panel-title">Latest Alerts</div>
         <div id="alerts-box-mini">
-           <p style="font-size:12px; color:var(--tx-muted); text-align:center; padding:20px">Aucune alerte récente</p>
+           <p style="font-size:12px; color:var(--tx-muted); text-align:center; padding:20px">No recent alerts</p>
         </div>
       </div>
     </div>
@@ -310,8 +310,8 @@ body {
     <div class="panel" style="margin-bottom: 24px;">
       <div class="chart-header">
         <div class="chart-title">
-          <h3>Analyses Détaillées</h3>
-          <p>Historique complet des mesures par appareil</p>
+          <h3>Detailed Analytics</h3>
+          <p>Full measurement history by device</p>
         </div>
         <div class="time-filters">
           <button class="tf-btn active" onclick="setH(1,this)">1H</button>
@@ -325,16 +325,16 @@ body {
     </div>
     
     <div class="panel">
-      <div class="panel-title">Données Historiques</div>
+      <div class="panel-title">Historical Data</div>
       <div class="data-table-container">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Date/Heure</th>
-              <th>Appareil</th>
-              <th>Puissance (W)</th>
-              <th>Tension (V)</th>
-              <th>Courant (A)</th>
+              <th>Date/Time</th>
+              <th>Device</th>
+              <th>Power (W)</th>
+              <th>Voltage (V)</th>
+              <th>Current (A)</th>
             </tr>
           </thead>
           <tbody id="history-table-body">
@@ -348,7 +348,7 @@ body {
   <!-- ALERTS VIEW -->
   <section id="view-alerts" class="view-section">
     <div class="panel">
-      <div class="panel-title">Historique des Alertes <span id="alert-count-total">0 alertes</span></div>
+      <div class="panel-title">Alerts History <span id="alert-count-total">0 alerts</span></div>
       <div id="alerts-list-full" style="display: grid; gap: 16px;">
         <!-- Alerts injected by JS -->
       </div>
@@ -362,10 +362,10 @@ body {
 <script>
 const API = 'http://127.0.0.1:5000/api';
 const DEVICES = [
-  { id: 'principal', name: 'Circuit Principal', icon: '⚡', detail: 'Entrée générale' },
-  { id: 'clim', name: 'Climatisation', icon: '❄️', detail: 'Unité salon' },
-  { id: 'chauffe', name: 'Chauffe-eau', icon: '🔥', detail: 'Ballon 200L' },
-  { id: 'lumiere', name: 'Éclairage', icon: '💡', detail: 'Toutes zones' }
+  { id: 'principal', name: 'Main Circuit', icon: '⚡', detail: 'General input' },
+  { id: 'clim', name: 'Air Conditioning', icon: '❄️', detail: 'Living room unit' },
+  { id: 'chauffe', name: 'Water Heater', icon: '🔥', detail: '200L tank' },
+  { id: 'lumiere', name: 'Lighting', icon: '💡', detail: 'All zones' }
 ];
 
 let selectedDeviceId = null;
@@ -411,7 +411,7 @@ function createChart(ctx, color) {
     data: {
       labels: [],
       datasets: [{
-        label: 'Puissance (W)',
+        label: 'Power (W)',
         data: [],
         borderColor: color,
         borderWidth: 2,
@@ -442,7 +442,7 @@ function createChart(ctx, color) {
         x: { 
           grid: { display: false }, 
           ticks: { color: '#94a3b8', font: { size: 10, family: 'JetBrains Mono' } },
-          title: { display: true, text: 'Temps', color: '#94a3b8', font: { size: 10, weight: 'bold' } }
+          title: { display: true, text: 'Time', color: '#94a3b8', font: { size: 10, weight: 'bold' } }
         },
         y: { 
           grid: { color: '#f1f5f9', drawBorder: false }, 
@@ -465,9 +465,9 @@ function switchView(viewId) {
   document.getElementById(`nav-${viewId}`).classList.add('active');
   
   const titles = {
-    'dashboard': selectedDeviceId ? DEVICES.find(d=>d.id===selectedDeviceId).name : 'Aperçu Global',
-    'analysis': 'Analyses Temporelles',
-    'alerts': 'Historique des Alertes'
+    'dashboard': selectedDeviceId ? DEVICES.find(d=>d.id===selectedDeviceId).name : 'Global Overview',
+    'analysis': 'Time Analytics',
+    'alerts': 'Alerts History'
   };
   document.getElementById('view-title').textContent = titles[viewId];
   
@@ -491,16 +491,16 @@ function buildCards() {
         <div class="dev-icon">${d.icon}</div>
         <div class="dev-info">
           <div class="dev-name">${d.name}</div>
-          <div class="dev-status">${s.anomaly ? '⚠️ ANOMALIE' : s.on ? '● ACTIF' : '○ ÉTEINT'}</div>
+          <div class="dev-status">${s.anomaly ? '⚠️ ANOMALY' : s.on ? '● ACTIVE' : '○ OFF'}</div>
         </div>
       </div>
       <div class="dev-metrics">
         <div class="m-item">
-          <div class="m-label">Puissance</div>
+          <div class="m-label">Power</div>
           <div class="m-val">${s.power.toFixed(0)} W</div>
         </div>
         <div class="m-item">
-          <div class="m-label">Tension</div>
+          <div class="m-label">Voltage</div>
           <div class="m-val">${s.voltage.toFixed(1)} V</div>
         </div>
       </div>
@@ -516,14 +516,14 @@ function buildCards() {
 function selectDevice(id) {
   if (selectedDeviceId === id) {
     selectedDeviceId = null;
-    if (currentView === 'dashboard') document.getElementById('view-title').textContent = 'Aperçu Global';
-    document.getElementById('chart-h3').textContent = 'Historique de consommation';
-    document.getElementById('chart-sub').textContent = 'Toutes les sources confondues';
+    if (currentView === 'dashboard') document.getElementById('view-title').textContent = 'Global Overview';
+    document.getElementById('chart-h3').textContent = 'Consumption History';
+    document.getElementById('chart-sub').textContent = 'All sources combined';
   } else {
     selectedDeviceId = id;
     const d = DEVICES.find(x => x.id === id);
     if (currentView === 'dashboard') document.getElementById('view-title').textContent = d.name;
-    document.getElementById('chart-h3').textContent = `Historique : ${d.name}`;
+    document.getElementById('chart-h3').textContent = `History: ${d.name}`;
     document.getElementById('chart-sub').textContent = d.detail;
   }
   buildCards();
@@ -586,7 +586,7 @@ async function fetchLatest() {
       const elE = document.getElementById('st-e');
       if (elE) elE.innerHTML = `${totalE.toFixed(2)}<span class="stat-unit">kWh</span>`;
       const elAc = document.getElementById('active-count');
-      if (elAc) elAc.textContent = `${countOn}/4 actifs`;
+      if (elAc) elAc.textContent = `${countOn}/4 active`;
       
       buildCards();
       setConn(true);
@@ -657,7 +657,7 @@ async function fetchHistory() {
           const tr = document.createElement('tr');
           const d = new Date(row.timestamp);
           tr.innerHTML = `
-            <td style="font-family: var(--mono); font-size: 11px;">${d.toLocaleString('fr-FR')}</td>
+            <td style="font-family: var(--mono); font-size: 11px;">${d.toLocaleString('en-US')}</td>
             <td><strong>${row.device_id}</strong></td>
             <td>${row.power.toFixed(1)} W</td>
             <td>${row.voltage.toFixed(1)} V</td>
@@ -687,20 +687,20 @@ async function fetchAlerts() {
         badge.style.display = anomCount > 0 ? 'block' : 'none';
       }
       
-      if (totalCount) totalCount.textContent = `${alerts.length} alertes`;
+      if (totalCount) totalCount.textContent = `${alerts.length} alerts`;
 
       // Mini list (dashboard)
       if (boxMini) {
         boxMini.innerHTML = '';
         alerts.slice(0, 3).forEach(a => boxMini.appendChild(createAlertEl(a)));
-        if (alerts.length === 0) boxMini.innerHTML = '<p style="font-size:12px; color:var(--tx-muted); text-align:center; padding:20px">Aucune alerte récente</p>';
+        if (alerts.length === 0) boxMini.innerHTML = '<p style="font-size:12px; color:var(--tx-muted); text-align:center; padding:20px">No recent alerts</p>';
       }
 
       // Full list (alerts view)
       if (currentView === 'alerts' && boxFull) {
         boxFull.innerHTML = '';
         alerts.forEach(a => boxFull.appendChild(createAlertEl(a)));
-        if (alerts.length === 0) boxFull.innerHTML = '<p style="padding:40px; text-align:center; color:var(--tx-muted)">Aucune alerte enregistrée</p>';
+        if (alerts.length === 0) boxFull.innerHTML = '<p style="padding:40px; text-align:center; color:var(--tx-muted)">No alerts recorded</p>';
       }
     }
   } catch(e) {}
@@ -709,15 +709,15 @@ async function fetchAlerts() {
 function createAlertEl(a) {
   const isAnom = a.status === 'ANOMALY';
   const d = new Date(a.timestamp);
-  const time = d.toLocaleString('fr-FR');
+  const time = d.toLocaleString('en-US');
   
   const item = document.createElement('div');
   item.className = 'alert-item';
   item.innerHTML = `
     <div class="a-icon ${isAnom ? 'danger' : 'ok'}">${isAnom ? '🚨' : '✅'}</div>
     <div class="a-content">
-      <div class="a-title">${isAnom ? 'Anomalie détectée' : 'État normal'} — ${a.device_id}</div>
-      <div class="a-detail">Puissance: <strong>${a.power}W</strong> | Score: ${parseFloat(a.score).toFixed(2)}</div>
+      <div class="a-title">${isAnom ? 'Anomaly detected' : 'Normal state'} — ${a.device_id}</div>
+      <div class="a-detail">Power: <strong>${a.power}W</strong> | Score: ${parseFloat(a.score).toFixed(2)}</div>
       <div class="a-time">${time}</div>
     </div>
   `;
@@ -739,7 +739,7 @@ async function setRelay(id, cmd) {
       toast(`${id.toUpperCase()} → ${cmd}`, 'ok');
       buildCards();
     }
-  } catch(e) { toast('Erreur de commande', 'error'); }
+  } catch(e) { toast('Command error', 'error'); }
 }
 
 function setH(h, btn) {
@@ -761,14 +761,14 @@ function toast(msg, type) {
 function setConn(on) {
   const dot = document.getElementById('conn-dot');
   const txt = document.getElementById('conn-text');
-  if (on) { dot.className = 'dot live'; txt.textContent = 'Connecté'; }
-  else { dot.className = 'dot off'; txt.textContent = 'Erreur API'; }
+  if (on) { dot.className = 'dot live'; txt.textContent = 'Connected'; }
+  else { dot.className = 'dot off'; txt.textContent = 'API Error'; }
 }
 
 // Clock
 setInterval(() => {
   const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('fr-FR');
+  document.getElementById('clock').textContent = now.toLocaleTimeString('en-US');
 }, 1000);
 
 // Loops
