@@ -6,7 +6,7 @@ from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 # ─────────────────────────────────────────────
@@ -47,6 +47,11 @@ table_alerts = dynamodb.Table(TABLE_ALERTS)
 # ─────────────────────────────────────────────
 app = Flask(__name__)
 CORS(app)
+
+@app.route("/")
+def index():
+    frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
+    return send_from_directory(frontend_dir, "index.html")
 
 
 def decimal_to_float(obj):
@@ -140,9 +145,10 @@ def latest():
                         "voltage":   safe_float(item.get("voltage", 0)),
                         "current":   safe_float(item.get("current", 0)),
                         "power":     safe_float(item.get("power",   0)),
-                        "energy":    safe_float(item.get("energy",  0)),
+                        "energy":      safe_float(item.get("energy",  0)),
+                        "relay_state": item.get("relay_state", "ON"),
                         # keep "time" alias for dashboard compatibility
-                        "time":      item.get("timestamp", datetime.now(timezone.utc).isoformat()),
+                        "time":        item.get("timestamp", datetime.now(timezone.utc).isoformat()),
                     })
             except Exception as e:
                 log.warning("Query failed for device %s: %s", device_id, e)
@@ -193,7 +199,8 @@ def history():
                         "power":     safe_float(item.get("power",   0)),
                         "voltage":   safe_float(item.get("voltage", 0)),
                         "current":   safe_float(item.get("current", 0)),
-                        "energy":    safe_float(item.get("energy",  0)),
+                        "energy":      safe_float(item.get("energy",  0)),
+                        "relay_state": item.get("relay_state", "ON"),
                     })
             except Exception as e:
                 log.warning("History query failed for %s: %s", device_id, e)

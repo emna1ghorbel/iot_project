@@ -92,12 +92,13 @@ def save_to_dynamodb(record: dict):
     """Persist one energy record. Intended to run in a thread-pool worker."""
     try:
         table.put_item(Item={
-            "device_id": record["device_id"],
-            "timestamp": record["timestamp"],
-            "voltage":   Decimal(str(record["voltage"])),
-            "current":   Decimal(str(record["current"])),
-            "power":     Decimal(str(record["power"])),
-            "energy":    Decimal(str(record["energy"])),
+            "device_id":   record["device_id"],
+            "timestamp":   record["timestamp"],
+            "voltage":     Decimal(str(record["voltage"])),
+            "current":     Decimal(str(record["current"])),
+            "power":       Decimal(str(record["power"])),
+            "energy":      Decimal(str(record["energy"])),
+            "relay_state": record.get("relay_state", "ON"),
         })
         log.info("✅ DynamoDB OK → %s @ %s", record["device_id"], record["timestamp"])
     except Exception as exc:
@@ -203,12 +204,12 @@ while True:
             state = relay_states[dev_id]
 
         if state == "OFF":
-            log.info("⏩  %s is OFF — skipping measurement", dev_id)
-            continue
-
-        v = sim_voltage(dev["base_voltage"])
-        i = sim_current(dev["base_current"])
-        p = round(v * i, 2)
+            v, i, p = 0.0, 0.0, 0.0
+            log.info("😴  %s is OFF — reporting zero consumption", dev_id)
+        else:
+            v = sim_voltage(dev["base_voltage"])
+            i = sim_current(dev["base_current"])
+            p = round(v * i, 2)
 
         # Update energy accumulator under lock (kWh)
         with relay_lock:
@@ -216,12 +217,13 @@ while True:
             e = round(energy_totals[dev_id], 6)
 
         record = {
-            "device_id": dev_id,
-            "timestamp": now,
-            "voltage":   v,
-            "current":   i,
-            "power":     p,
-            "energy":    e,
+            "device_id":   dev_id,
+            "timestamp":   now,
+            "voltage":     v,
+            "current":     i,
+            "power":       p,
+            "energy":      e,
+            "relay_state": state,
         }
 
         # Publish to IoT Core

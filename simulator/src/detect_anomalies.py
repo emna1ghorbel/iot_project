@@ -52,9 +52,9 @@ PAGE_SIZE         = int(os.environ.get("PAGE_SIZE",         100))  # DynamoDB pa
 # from false-flagging high-power devices like clim or chauffe.
 # ─────────────────────────────────────────────
 DEVICE_NORMAL_RANGES = {
-    "principal": (30,   700),    # base ~2.1A × 220V ≈ 460W, allow ±50%
-    "clim":      (200, 1800),    # base ~5.5A × 220V ≈ 1210W, allow ±50%
-    "chauffe":   (150, 1400),    # base ~4.1A × 220V ≈ 900W, allow ±50%
+    "principal": (30,   700),    # base ~2.1A × 220V ≈ 460W
+    "clim":      (200,  800),    # Seuil abaissé à 800W pour TEST d'anomalie (normal ~1200W)
+    "chauffe":   (150, 1400),    # base ~4.1A × 220V ≈ 900W
     "lumiere":   (10,   40),     # Seuil abaissé à 40W pour TEST d'anomalie (normal ~60W)
 }
 
@@ -177,7 +177,6 @@ def fetch_latest_per_device() -> list[dict]:
 # ─────────────────────────────────────────────
 def evaluate(item: dict) -> None:
     device_id = item["device_id"]
-
     try:
         voltage = float(item.get("voltage", 0))
         current = float(item.get("current", 0))
@@ -185,6 +184,24 @@ def evaluate(item: dict) -> None:
         energy  = float(item.get("energy",  0))
     except (ValueError, TypeError) as exc:
         log.warning("Bad data for %s: %s", device_id, exc)
+        return
+
+    # ── Pre-check: is the data fresh? (30s threshold)
+    ts_str = item.get("timestamp", "")
+    try:
+        # Handle both Z and +00:00 formats
+        ts_dt = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+        age = (datetime.now(timezone.utc) - ts_dt).total_seconds()
+        if age > 30:
+            log.info("⏳  SKIP AI %s | Data is stale (age=%.1fs) — assuming OFF/Inactive", device_id, age)
+            return
+    except Exception as e:
+        log.warning("Could not parse timestamp %s: %s", ts_str, e)
+
+    # ── Pre-check: is the device off?
+    relay_state = item.get("relay_state", "ON")
+    if relay_state == "OFF" or power == 0:
+        log.info("😴  SKIP AI %s | Device is OFF or Power=0W", device_id)
         return
 
     # ── Pre-check: is power within the known normal range for this device?
